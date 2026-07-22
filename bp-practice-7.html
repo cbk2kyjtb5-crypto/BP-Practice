@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blood Pressure Auscultation Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-navy:#0A2540;
+    --deep-teal:#0064B1;
+    --deep-teal-light:#3E86BE;
+    --brass:#F58025;
+    --dial-cream:#F3EFE4;
+    --needle-red:#D9660F;
+    --sage:#2E77B5;
+    --sage-dark:#004C87;
+    --paper:#EEF3F7;
+    --card:#FFFFFF;
+    --line:rgba(10,37,64,0.14);
+    --alert-red:#B3392C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    font-family:'Inter',sans-serif;
+    color:var(--ink-navy);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:520px;
+    margin:0 auto;
+    padding:28px 20px 40px;
+  }
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--deep-teal-light);
+    margin:0 0 4px;
+  }
+  h1{
+    font-family:'Zilla Slab',serif;
+    font-weight:600;
+    font-size:30px;
+    margin:0 0 6px;
+    color:var(--ink-navy);
+  }
+  .subtitle{
+    font-size:14.5px;
+    line-height:1.55;
+    color:#3E6280;
+    margin:0 0 22px;
+    max-width:44ch;
+  }
+  .case-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:14px;
+    font-family:'Space Mono',monospace;
+    font-size:12.5px;
+    color:var(--deep-teal-light);
+  }
+  .case-row b{color:var(--ink-navy);font-weight:700;}
+  .mode-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .mode-label{
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#3E6280;
+  }
+  .mode-toggle{
+    display:flex;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:3px;
+    gap:2px;
+  }
+  .mode-btn{
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+    font-size:12.5px;
+    border:none;
+    background:transparent;
+    color:var(--deep-teal-light);
+    padding:6px 14px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .mode-btn.active{
+    background:var(--ink-navy);
+    color:var(--dial-cream);
+  }
+  .console.standard-mode .stetho-indicator{
+    display:none;
+  }
+  .console{
+    background:var(--ink-navy);
+    border-radius:18px;
+    padding:22px 20px 24px;
+    position:relative;
+  }
+  .gauge-wrap{
+    display:flex;
+    justify-content:center;
+    margin-bottom:6px;
+  }
+  .readout{
+    text-align:center;
+    margin:-6px 0 10px;
+  }
+  .readout .num{
+    font-family:'Space Mono',monospace;
+    font-weight:700;
+    font-size:34px;
+    color:var(--dial-cream);
+    letter-spacing:0.02em;
+  }
+  .readout .unit{
+    font-family:'Space Mono',monospace;
+    font-size:12px;
+    color:var(--brass);
+    letter-spacing:0.1em;
+    margin-left:4px;
+  }
+  .vitals-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:26px;
+    margin:2px 0 18px;
+    height:20px;
+    flex-wrap:wrap;
+  }
+  .indicator{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .pulse-dot{
+    width:9px;height:9px;border-radius:50%;
+    background:#274A63;
+    transition:background .08s, transform .08s;
+  }
+  .pulse-dot.active{
+    background:var(--brass);
+    transform:scale(1.35);
+  }
+  .stetho-dot{
+    width:9px;height:9px;border-radius:50%;
+    background:#274A63;
+    transition:background .08s, transform .08s;
+  }
+  .stetho-dot.active{
+    background:var(--deep-teal);
+    transform:scale(1.35);
+  }
+  .indicator-label{
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    color:#7FA8C4;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+  .controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  button{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    border-radius:10px;
+    border:1px solid transparent;
+    padding:13px 10px;
+    cursor:pointer;
+    transition:transform .06s, opacity .15s, background .15s;
+  }
+  button:active{transform:scale(0.97);}
+  button:disabled{opacity:0.35;cursor:not-allowed;}
+  button:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+  .btn-pump{
+    background:var(--brass);
+    color:var(--ink-navy);
+    grid-column:1/2;
+  }
+  .btn-valve{
+    background:transparent;
+    color:var(--dial-cream);
+    border-color:rgba(243,239,228,0.35);
+    grid-column:2/3;
+  }
+  .btn-valve.open{
+    background:var(--deep-teal-light);
+    border-color:var(--deep-teal-light);
+  }
+  .mark-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .entry-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .entry-field label{
+    display:block;
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#7FA8C4;
+    margin-bottom:6px;
+  }
+  .entry-field input{
+    width:100%;
+    background:rgba(243,239,228,0.08);
+    border:1px solid rgba(243,239,228,0.35);
+    color:var(--dial-cream);
+    font-family:'Space Mono',monospace;
+    font-size:16px;
+    font-weight:700;
+    padding:11px 12px;
+    border-radius:10px;
+    -moz-appearance:textfield;
+  }
+  .entry-field input::placeholder{
+    color:rgba(243,239,228,0.4);
+    font-weight:400;
+  }
+  .entry-field input:focus-visible{
+    outline:2px solid var(--brass);
+    outline-offset:1px;
+  }
+  .btn-submit{
+    width:100%;
+    background:var(--brass);
+    color:var(--ink-navy);
+  }
+  .hint{
+    font-size:12.5px;
+    color:#7FA8C4;
+    text-align:center;
+    margin:12px 0 0;
+    min-height:16px;
+    font-family:'Space Mono',monospace;
+  }
+  .result{
+    margin-top:18px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 18px;
+    display:none;
+  }
+  .result.show{display:block;}
+  .result-grade{
+    font-family:'Zilla Slab',serif;
+    font-weight:600;
+    font-size:19px;
+    margin:0 0 10px;
+  }
+  .result-grade.good{color:var(--sage-dark);}
+  .result-grade.bad{color:var(--alert-red);}
+  .compare-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'Space Mono',monospace;
+    font-size:13px;
+  }
+  .compare-table td{
+    padding:6px 0;
+    border-top:1px solid var(--line);
+  }
+  .compare-table td:first-child{color:#4A6B85;}
+  .compare-table td:last-child{text-align:right;font-weight:700;}
+  .result-actions{
+    display:flex;
+    gap:10px;
+    margin-top:16px;
+  }
+  .result-actions button{
+    flex:1;
+    background:var(--ink-navy);
+    color:var(--dial-cream);
+  }
+  .result-actions button.secondary{
+    background:transparent;
+    border-color:var(--line);
+    color:var(--ink-navy);
+  }
+  .stats{
+    display:flex;
+    justify-content:space-between;
+    margin-top:20px;
+    font-family:'Space Mono',monospace;
+    font-size:12px;
+    color:#4A6B85;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  .stats b{color:var(--ink-navy);}
+  .credit{
+    text-align:center;
+    font-size:11.5px;
+    color:#7C93A6;
+    margin:16px 0 0;
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;animation:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <p class="eyebrow">Clinical skills drill</p>
+  <h1>Blood Pressure Auscultation Practice</h1>
+  <p class="subtitle">Palpate the radial pulse as you pump — once it disappears, add about 30 mmHg more, then open the valve and listen for the Korotkoff sounds.</p>
+
+  <div class="case-row">
+    <span>Simulated patient <b id="caseNum">#1</b></span>
+    <span id="attemptsLabel">0 readings taken</span>
+  </div>
+
+  <div class="mode-row">
+    <span class="mode-label">Difficulty</span>
+    <div class="mode-toggle">
+      <button type="button" class="mode-btn active" id="modeBeginnerBtn">Beginner</button>
+      <button type="button" class="mode-btn" id="modeStandardBtn">Standard</button>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="gauge-wrap">
+      <svg id="gaugeSvg" width="300" height="320" viewBox="0 0 320 340"></svg>
+    </div>
+    <div class="vitals-row">
+      <div class="indicator">
+        <div class="pulse-dot" id="pulseDot"></div>
+        <span class="indicator-label" id="pulseLabel">Radial pulse palpable</span>
+      </div>
+      <div class="indicator stetho-indicator">
+        <div class="stetho-dot" id="stethoDot"></div>
+        <span class="indicator-label" id="stethoLabel">No sound</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-pump" id="pumpBtn">Pump bulb</button>
+      <button class="btn-valve" id="valveBtn">Open valve</button>
+    </div>
+    <div class="entry-row">
+      <div class="entry-field">
+        <label for="sysInput">Systolic</label>
+        <input type="number" id="sysInput" inputmode="numeric" placeholder="e.g. 120">
+      </div>
+      <div class="entry-field">
+        <label for="diaInput">Diastolic</label>
+        <input type="number" id="diaInput" inputmode="numeric" placeholder="e.g. 80">
+      </div>
+    </div>
+    <button class="btn-submit" id="submitBtn">Submit reading</button>
+    <p class="hint" id="hintText">Pump the bulb to begin.</p>
+  </div>
+
+  <div class="result" id="resultPanel">
+    <p class="result-grade" id="resultGrade"></p>
+    <table class="compare-table">
+      <tr><td>Your reading</td><td id="rowYours">—</td></tr>
+      <tr><td>Actual reading</td><td id="rowActual">—</td></tr>
+      <tr><td>Difference</td><td id="rowDiff">—</td></tr>
+    </table>
+    <div class="result-actions">
+      <button class="secondary" id="retryBtn">Retry patient</button>
+      <button id="nextBtn">Next patient</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <span>Attempts <b id="statAttempts">0</b></span>
+    <span>Within tolerance <b id="statGood">0</b></span>
+    <span>Streak <b id="statStreak">0</b></span>
+  </div>
+
+  <p class="credit">Created by Michael Holmes, CONHI, UT Arlington &middot; 2026</p>
+</div>
+
+<script>
+(function(){
+  var MAXP = 300;
+  var cx = 160, cy = 180, r = 140;
+
+  function angleFor(v){ return -135 + (v/MAXP)*270; }
+  function pointFor(v, radius){
+    var a = angleFor(v) * Math.PI/180;
+    return { x: cx + radius*Math.sin(a), y: cy - radius*Math.cos(a) };
+  }
+
+  function buildGauge(){
+    var svg = document.getElementById('gaugeSvg');
+    var parts = [];
+    parts.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+16)+'" fill="var(--dial-cream)"></circle>');
+    for(var v=0; v<=MAXP; v+=2){
+      var isTen = (v % 10 === 0);
+      var p1 = pointFor(v, r);
+      var len = isTen ? r-16 : r-7;
+      var p2 = pointFor(v, len);
+      parts.push('<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'" stroke="var(--ink-navy)" stroke-width="'+(isTen?1.8:0.9)+'" opacity="'+(isTen?0.85:0.5)+'"></line>');
+    }
+    for(var n=0; n<=MAXP; n+=20){
+      var tp = pointFor(n, r-34);
+      parts.push('<text x="'+tp.x+'" y="'+(tp.y+5)+'" text-anchor="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="var(--ink-navy)">'+n+'</text>');
+    }
+    parts.push('<circle id="sysFlag" cx="0" cy="0" r="0" fill="none"></circle>');
+    parts.push('<circle id="diaFlag" cx="0" cy="0" r="0" fill="none"></circle>');
+    parts.push('<circle cx="'+cx+'" cy="'+cy+'" r="11" fill="var(--brass)"></circle>');
+    svg.innerHTML = parts.join('');
+
+    var needle = document.createElementNS('http://www.w3.org/2000/svg','g');
+    needle.id = 'needleGroup';
+    needle.setAttribute('style','transform-origin:'+cx+'px '+cy+'px; transition:transform .25s linear;');
+    needle.innerHTML = '<line x1="'+cx+'" y1="'+cy+'" x2="'+cx+'" y2="'+(cy-r+8)+'" stroke="var(--needle-red)" stroke-width="4.5" stroke-linecap="round"></line>';
+    svg.appendChild(needle);
+    setNeedle(0);
+  }
+
+  function setNeedle(v){
+    var needle = document.getElementById('needleGroup');
+    if(needle) needle.style.transform = 'rotate('+angleFor(v)+'deg)';
+  }
+
+  function setFlag(id, value, color){
+    var el = document.getElementById(id);
+    if(!el) return;
+    var p = pointFor(value, r+16);
+    el.setAttribute('cx', p.x);
+    el.setAttribute('cy', p.y);
+    el.setAttribute('r', 6);
+    el.setAttribute('fill', color);
+  }
+
+  var state = {
+    pressure: 0,
+    deflating: false,
+    trueSys: 0,
+    trueDia: 0,
+    markSys: null,
+    markDia: null,
+    caseNum: 1,
+    attempts: 0,
+    good: 0,
+    streak: 0,
+    audioCtx: null,
+    deflateTimer: null,
+    heartTimer: null,
+    pulseTimer: null,
+    mode: 'beginner'
+  };
+
+  function randEven(min, max){
+    var v = Math.floor(Math.random()*((max-min)/2+1))*2+min;
+    return v;
+  }
+
+  function newPatient(){
+    state.trueSys = randEven(96,176);
+    var offset = randEven(28,52);
+    state.trueDia = Math.max(54, state.trueSys - offset);
+    state.markSys = null;
+    state.markDia = null;
+    state.pressure = 0;
+    state.deflating = false;
+    setNeedle(0);
+    setFlag('sysFlag', 0, 'transparent');
+    setFlag('diaFlag', 0, 'transparent');
+    document.getElementById('sysInput').value = '';
+    document.getElementById('diaInput').value = '';
+    document.getElementById('valveBtn').textContent = 'Open valve';
+    document.getElementById('valveBtn').classList.remove('open');
+    document.getElementById('resultPanel').classList.remove('show');
+    document.getElementById('hintText').textContent = 'Pump the bulb to begin.';
+    document.getElementById('caseNum').textContent = '#' + state.caseNum;
+    document.getElementById('pulseLabel').textContent = 'Radial pulse palpable';
+    stopSound();
+    stopDeflate();
+  }
+
+  function retryPatient(){
+    state.pressure = 0;
+    setNeedle(0);
+    setFlag('sysFlag', 0, 'transparent');
+    setFlag('diaFlag', 0, 'transparent');
+    document.getElementById('sysInput').value = '';
+    document.getElementById('diaInput').value = '';
+    document.getElementById('valveBtn').textContent = 'Open valve';
+    document.getElementById('valveBtn').classList.remove('open');
+    document.getElementById('resultPanel').classList.remove('show');
+    document.getElementById('hintText').textContent = 'Pump the bulb to begin.';
+    document.getElementById('pulseLabel').textContent = 'Radial pulse palpable';
+    stopSound();
+    stopDeflate();
+  }
+
+  function ensureAudio(){
+    if(!state.audioCtx){
+      state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(state.audioCtx.state === 'suspended') state.audioCtx.resume();
+  }
+
+  function playTap(volume){
+    if(!state.audioCtx) return;
+    var vol = (typeof volume === 'number') ? volume : 1;
+    var ctx = state.audioCtx;
+    var now = ctx.currentTime;
+    var osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(95, now);
+    osc.frequency.exponentialRampToValueAtTime(55, now+0.12);
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.55*vol, now+0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now+0.16);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now+0.2);
+
+    var bufferSize = Math.floor(ctx.sampleRate*0.05);
+    var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for(var i=0;i<bufferSize;i++){
+      data[i] = (Math.random()*2-1)*Math.exp(-i/(bufferSize*0.3));
+    }
+    var noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    var filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 220;
+    var noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.35*vol, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now+0.08);
+    noise.connect(filter).connect(noiseGain).connect(ctx.destination);
+    noise.start(now);
+
+    pulseStetho(vol);
+  }
+
+  function pulseStetho(vol){
+    var dot = document.getElementById('stethoDot');
+    dot.classList.add('active');
+    dot.style.opacity = 0.45 + 0.55*(typeof vol === 'number' ? vol : 1);
+    setTimeout(function(){ dot.classList.remove('active'); dot.style.opacity = ''; }, 140);
+  }
+
+  function startHeartLoop(){
+    if(state.heartTimer) return;
+    state.heartTimer = setInterval(function(){
+      var inRange = state.pressure <= state.trueSys && state.pressure >= state.trueDia && state.pressure > 0;
+      var label = document.getElementById('stethoLabel');
+      if(inRange){
+        var range = state.trueSys - state.trueDia;
+        var frac = range > 0 ? (state.pressure - state.trueDia) / range : 1;
+        var volume = 0.3 + 0.7*frac;
+        playTap(volume);
+        label.textContent = 'Tapping heard';
+      } else {
+        label.textContent = 'No sound';
+      }
+    }, 820);
+  }
+
+  function stopSound(){
+    if(state.heartTimer){ clearInterval(state.heartTimer); state.heartTimer = null; }
+    document.getElementById('stethoLabel').textContent = 'No sound';
+  }
+
+  function startPulseLoop(){
+    if(state.pulseTimer) return;
+    state.pulseTimer = setInterval(function(){
+      var dot = document.getElementById('pulseDot');
+      var label = document.getElementById('pulseLabel');
+      var palpable = state.pressure < state.trueSys;
+      if(palpable){
+        dot.classList.add('active');
+        setTimeout(function(){ dot.classList.remove('active'); }, 140);
+        label.textContent = 'Radial pulse palpable';
+      } else {
+        label.textContent = 'Pulse obliterated';
+      }
+    }, 820);
+  }
+
+  function startDeflate(){
+    if(state.deflateTimer) return;
+    state.deflating = true;
+    document.getElementById('valveBtn').textContent = 'Close valve';
+    document.getElementById('valveBtn').classList.add('open');
+    document.getElementById('hintText').textContent = 'Listening for Korotkoff sounds...';
+    state.deflateTimer = setInterval(function(){
+      state.pressure = Math.max(0, state.pressure - 1);
+      setNeedle(state.pressure);
+      if(state.pressure <= 0){
+        stopDeflate();
+        if(state.markSys === null || state.markDia === null){
+          document.getElementById('hintText').textContent = 'Cuff fully deflated — you missed the window. Retry this patient.';
+        }
+      }
+    }, 500);
+  }
+
+  function stopDeflate(){
+    if(state.deflateTimer){ clearInterval(state.deflateTimer); state.deflateTimer = null; }
+    state.deflating = false;
+    document.getElementById('valveBtn').textContent = 'Open valve';
+    document.getElementById('valveBtn').classList.remove('open');
+  }
+
+  function submitReading(){
+    var sysVal = document.getElementById('sysInput').value;
+    var diaVal = document.getElementById('diaInput').value;
+    if(sysVal === '' || diaVal === ''){
+      document.getElementById('hintText').textContent = 'Enter both systolic and diastolic before submitting.';
+      return;
+    }
+    state.markSys = Math.round(Number(sysVal));
+    state.markDia = Math.round(Number(diaVal));
+    setFlag('sysFlag', state.markSys, 'var(--needle-red)');
+    setFlag('diaFlag', state.markDia, 'var(--sage)');
+    stopDeflate();
+    stopSound();
+    showResult();
+  }
+
+  function showResult(){
+    state.attempts++;
+    var diffSys = Math.abs(state.markSys - state.trueSys);
+    var diffDia = Math.abs(state.markDia - state.trueDia);
+    var maxDiff = Math.max(diffSys, diffDia);
+    var grade, gradeClass;
+    if(maxDiff <= 4){
+      grade = 'Within tolerance (\u00B14 mmHg)';
+      gradeClass = 'good';
+      state.good++;
+      state.streak++;
+    } else {
+      grade = 'Outside tolerance — recheck your technique';
+      gradeClass = 'bad';
+      state.streak = 0;
+    }
+    document.getElementById('resultGrade').textContent = grade;
+    document.getElementById('resultGrade').className = 'result-grade ' + gradeClass;
+    document.getElementById('rowYours').textContent = state.markSys + ' / ' + state.markDia;
+    document.getElementById('rowActual').textContent = state.trueSys + ' / ' + state.trueDia;
+    document.getElementById('rowDiff').textContent = diffSys + ' / ' + diffDia + ' mmHg';
+    document.getElementById('resultPanel').classList.add('show');
+    document.getElementById('hintText').textContent = 'Reading complete.';
+
+    document.getElementById('attemptsLabel').textContent = state.attempts + ' reading' + (state.attempts===1?'':'s') + ' taken';
+    document.getElementById('statAttempts').textContent = state.attempts;
+    document.getElementById('statGood').textContent = state.good;
+    document.getElementById('statStreak').textContent = state.streak;
+  }
+
+  document.getElementById('pumpBtn').addEventListener('click', function(){
+    ensureAudio();
+    if(state.deflating) return;
+    state.pressure = Math.min(MAXP, state.pressure + 10);
+    setNeedle(state.pressure);
+    document.getElementById('hintText').textContent = 'Read the gauge. Open the valve when ready.';
+  });
+
+  document.getElementById('valveBtn').addEventListener('click', function(){
+    if(state.pressure === 0){
+      document.getElementById('hintText').textContent = 'Pump the cuff up before opening the valve.';
+      return;
+    }
+    if(state.deflating){
+      stopDeflate();
+      document.getElementById('hintText').textContent = 'Valve closed. Pressure is holding — read the gauge.';
+    } else {
+      startHeartLoop();
+      startDeflate();
+    }
+  });
+
+  document.getElementById('submitBtn').addEventListener('click', submitReading);
+
+  document.getElementById('retryBtn').addEventListener('click', retryPatient);
+  document.getElementById('nextBtn').addEventListener('click', function(){
+    state.caseNum++;
+    newPatient();
+  });
+
+  function setMode(mode){
+    state.mode = mode;
+    document.getElementById('modeBeginnerBtn').classList.toggle('active', mode === 'beginner');
+    document.getElementById('modeStandardBtn').classList.toggle('active', mode === 'standard');
+    document.querySelector('.console').classList.toggle('standard-mode', mode === 'standard');
+  }
+  document.getElementById('modeBeginnerBtn').addEventListener('click', function(){ setMode('beginner'); });
+  document.getElementById('modeStandardBtn').addEventListener('click', function(){ setMode('standard'); });
+
+  buildGauge();
+  newPatient();
+  startPulseLoop();
+  setMode('beginner');
+
+  try {
+    fetch('https://countapi.mileshilliard.com/api/v1/hit/uta-conhi-bp-auscultation-holmes').catch(function(){});
+  } catch(e){}
+})();
+</script>
+</body>
+</html>
